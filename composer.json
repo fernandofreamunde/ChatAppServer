@@ -63,6 +63,7 @@
     },
     "require-dev": {
         "sensiolabs/security-checker": "^5.0",
+        "symfony/debug-pack": "^1.0",
         "symfony/web-server-bundle": "4.2.*"
     }
 }
