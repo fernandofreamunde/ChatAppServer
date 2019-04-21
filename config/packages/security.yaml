@@ -2,6 +2,7 @@ security:
     encoders:
         App\Entity\User:
             algorithm: argon2i
+            cost: 10
 
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
@@ -19,6 +20,8 @@ security:
             guard:
                 authenticators:
                     - App\Security\LoginFormAuthenticator
+            logout:
+                path: app_logout
 
             # activate different ways to authenticate
 
