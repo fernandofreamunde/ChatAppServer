@@ -51,6 +51,12 @@ class LoginFormAuthenticator extends AbstractGuardAuthenticator
 
     public function getCredentials(Request $request)
     {
+        // there is a better place for this for sure.
+        if ($request->headers->get('Content-Type') == 'application/json') {
+            $data = json_decode($request->getContent(), true);
+            $request->request->replace(is_array($data) ? $data : array());
+        }
+
         return [
             'email'    => $request->request->get('email'),
             'password' => $request->request->get('password'),
