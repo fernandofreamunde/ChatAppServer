@@ -18,7 +18,9 @@ use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
 class LoginFormAuthenticator extends AbstractGuardAuthenticator
 {
-    const SECRET_SAUCE ='SomeSecretString';
+    const TOKEN_SECRET ='SomeSecretString';
+    const TOKEN_ISSUER ='http://localhost:8000';
+    const TOKEN_AUDIENCE ='http://localhost:8080';
     /**
      * @var UserRepository
      */
@@ -45,18 +47,18 @@ class LoginFormAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request)
     {
-        return $request->attributes->get('_route') === 'app_login'
-            && $request->isMethod('POST');
-    }
-
-    public function getCredentials(Request $request)
-    {
         // there is a better place for this for sure.
         if ($request->headers->get('Content-Type') == 'application/json') {
             $data = json_decode($request->getContent(), true);
             $request->request->replace(is_array($data) ? $data : array());
         }
 
+        return $request->attributes->get('_route') === 'app_login'
+            && $request->isMethod('POST');
+    }
+
+    public function getCredentials(Request $request)
+    {
         return [
             'email'    => $request->request->get('email'),
             'password' => $request->request->get('password'),
@@ -77,15 +79,15 @@ class LoginFormAuthenticator extends AbstractGuardAuthenticator
     {
         $signer = new Sha256();
         $jwt = (new Builder())
-            ->setIssuer('http://localhost:8000') // set these somewhere else
-            ->setAudience('http://localhost:8080')
+            ->setIssuer(self::TOKEN_ISSUER)
+            ->setAudience(self::TOKEN_AUDIENCE)
             ->setIssuedAt(time())
             ->setNotBefore(time() + 3)
             ->setExpiration(time() + 3600)
             ->set('uid', $token->getUser()->getId())
-            ->set('roles', $token->getUser()->getRoles())
+            ->set('username', $token->getUser()->getUsername())
             ->set('email', $token->getUser()->getEmail())
-            ->sign($signer, SELF::SECRET_SAUCE) // get something else here
+            ->sign($signer, SELF::TOKEN_SECRET)
             ->getToken();
 
         return new JsonResponse([
