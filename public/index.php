@@ -20,11 +20,6 @@ if ($trustedHosts = $_SERVER['TRUSTED_HOSTS'] ?? $_ENV['TRUSTED_HOSTS'] ?? false
     Request::setTrustedHosts([$trustedHosts]);
 }
 
-// Lost too much time with this gonna put this here,
-// this is a hack, would not do this in prod
-// and probably I would not have the issue
-// in prod because the apps would have the same domain
-header("Access-Control-Allow-Origin: *");
 
 $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
 $request = Request::createFromGlobals();
