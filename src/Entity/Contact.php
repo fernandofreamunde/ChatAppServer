@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ContactRepository")
@@ -13,23 +14,27 @@ class Contact
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups("list")
      */
     private $id;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="contacts")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups("list")
      */
     private $owner;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\User")
      * @ORM\JoinColumn(nullable=false)
+     * @Groups("list")
      */
     private $contact;
 
     /**
      * @ORM\Column(type="string", length=25)
+     * @Groups("list")
      */
     private $status;
 
