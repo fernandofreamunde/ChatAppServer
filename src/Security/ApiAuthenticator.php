@@ -29,12 +29,14 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request)
     {
-        return $request->headers->has('Authorization')
-            && 0 === strpos($request->headers->get('Authorization'), 'Bearer ');
+        return $request->attributes->get('_route') !== 'app_login';
     }
 
     public function getCredentials(Request $request)
     {
+        if (!$request->headers->has('Authorization')) {
+            throw new CustomUserMessageAuthenticationException('Authentication Token necessary!');
+        }
         return substr($request->headers->get('Authorization'), 7);
     }
 
