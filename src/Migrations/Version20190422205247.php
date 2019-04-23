@@ -31,7 +31,6 @@ final class Version20190422205247 extends AbstractMigration
         $this->addSql('CREATE INDEX IDX_5AECB555A76ED395 ON conversation_user (user_id)');
         $this->addSql('CREATE TABLE contact (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, owner_id INTEGER NOT NULL, contact_id INTEGER NOT NULL, status VARCHAR(25) NOT NULL)');
         $this->addSql('CREATE INDEX IDX_4C62E6387E3C61F9 ON contact (owner_id)');
-        $this->addSql('CREATE UNIQUE INDEX UNIQ_4C62E638E7A1254A ON contact (contact_id)');
     }
 
     public function down(Schema $schema) : void

@@ -26,22 +26,16 @@ class LoginFormAuthenticator extends AbstractGuardAuthenticator
      */
     private $userRepository;
     /**
-     * @var RouterInterface
-     */
-    private $router;
-    /**
      * @var UserPasswordEncoderInterface
      */
     private $encoder;
 
     public function __construct(
         UserRepository $userRepository,
-        RouterInterface $router,
         UserPasswordEncoderInterface $encoder
     )
     {
         $this->userRepository = $userRepository;
-        $this->router = $router;
         $this->encoder = $encoder;
     }
 
@@ -82,7 +76,7 @@ class LoginFormAuthenticator extends AbstractGuardAuthenticator
             ->setIssuer(self::TOKEN_ISSUER)
             ->setAudience(self::TOKEN_AUDIENCE)
             ->setIssuedAt(time())
-            ->setNotBefore(time() + 3)
+            ->setNotBefore(time())
             ->setExpiration(time() + 3600)
             ->set('uid', $token->getUser()->getId())
             ->set('username', $token->getUser()->getUsername())
