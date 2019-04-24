@@ -136,7 +136,6 @@ class ContactController extends AbstractController
      */
     public function delete(Security $security, Contact $contact)
     {
-        // if user not owner do not delete send unauthorized
         if ($security->getUser()->getId() !== $contact->getOwner()->getId()) {
             return $this->json([
                 'error' => 'Unauthorized',

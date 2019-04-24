@@ -74,25 +74,4 @@ class ConversationController extends AbstractController
             'groups' => ['list'],
         ]);
     }
-
-    /**
-     * @Route("/conversation/{id}", name="del_conversation", methods={"DELETE"})
-     */
-    public function delete(Conversation $conversation)
-    {
-        dd($conversation);
-
-        //had to use this because of a circular reference,
-        //most of the code is the $this->>json() that is normally used in this app
-        $json = $this->container->get('serializer')->serialize($conversation, 'json', array_merge([
-            'json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS,
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ], [
-            'groups' => ['list']
-        ]));
-
-        return new JsonResponse($json, 200, [], true);
-    }
 }
