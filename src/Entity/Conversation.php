@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ConversationRepository")
@@ -15,16 +16,19 @@ class Conversation
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups("list")
      */
     private $id;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\User", inversedBy="conversations")
+     * @Groups("list")
      */
     private $participants;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Message", mappedBy="conversation", orphanRemoval=true)
+     * @Groups("list")
      */
     private $messages;
 
