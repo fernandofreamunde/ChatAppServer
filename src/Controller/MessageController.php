@@ -18,39 +18,21 @@ class MessageController extends AbstractController
      */
     public function new(Conversation $conversation, MessageService $messageService)
     {
-        $message =$messageService->addMessageToConversation($conversation);
+        $message = $messageService->createMessageToConversation($conversation);
 
-        //had to use this because of a circular reference,
-        //most of the code is the $this->>json() that is normally used in this app
-        $json = $this->container->get('serializer')->serialize([ 'message' => $message], 'json', array_merge([
-            'json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS,
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ], [
-            'groups' => ['list']
-        ]));
-        return new JsonResponse($json, 201, [], true);
+        return new JsonResponse($message, 201, [], true);
     }
 
     /**
      * @Route("/conversation/{id}/messages", name="get_conversation_messages", methods={"GET"})
      * @param Conversation $conversation
+     * @param MessageService $messageService
      * @return JsonResponse
      */
-    public function show(Conversation $conversation)
+    public function show(Conversation $conversation, MessageService $messageService)
     {
-        //had to use this because of a circular reference,
-        //most of the code is the $this->>json() that is normally used in this app
-        $json = $this->container->get('serializer')->serialize([ 'messages' => $conversation->getMessages()], 'json', array_merge([
-            'json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS,
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ], [
-            'groups' => ['list']
-        ]));
+        $messages = $messageService->serialize($conversation->getMessages());
 
-        return new JsonResponse($json, 200, [], true);
+        return new JsonResponse($messages, 200, [], true);
     }
 }

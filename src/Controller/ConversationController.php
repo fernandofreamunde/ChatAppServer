@@ -2,76 +2,41 @@
 
 namespace App\Controller;
 
-use App\Entity\Conversation;
 use App\Entity\User;
-use App\Repository\ConversationRepository;
-use App\Repository\UserRepository;
+use App\Service\ConversationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 
 class ConversationController extends AbstractController
 {
     /**
-     * @Route("/conversation", name="get_conversations", methods={"GET"})
-     */
-    public function index()
-    {
-        return $this->json([
-            'message' => 'Welcome to your new controller!',
-            'path' => 'src/Controller/ConversationController.php',
-        ]);
-    }
-
-    /**
      * @Route("/conversation/{email}", name="get_conversation_byuser", methods={"GET"})
+     * @param User $user
+     * @param ConversationService $conversationService
+     * @return JsonResponse
      */
-    public function getConversation(User $participant, ConversationRepository $conversationRepository, Security $security)
+    public function getConversation(User $user, ConversationService $conversationService)
     {
-        $conversation = $conversationRepository->findByWithParticipants($security->getUser()->getId(), $participant->getId());
-
-        //had to use this because of a circular reference,
-        //most of the code is the $this->>json() that is normally used in this app
-        $json = $this->container->get('serializer')->serialize([ 'conversation' => $conversation], 'json', array_merge([
-            'json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS,
-            'circular_reference_handler' => function ($object) {
-                return $object->getId();
-            }
-        ], [
-            'groups' => ['list']
-        ]));
-
-        return new JsonResponse($json, 200, [], true);
+        $conversation = $conversationService->getConversationWithContact($user);
+        return new JsonResponse($conversation, 200, [], true);
     }
 
     /**
      * @Route("/conversation", name="post_conversations", methods={"POST"})
+     * @param ConversationService $conversationService
+     * @return JsonResponse
      */
-    public function new(Request $request, Security $security, UserRepository $userRepository)
+    public function new(ConversationService $conversationService)
     {
-        $participant = $userRepository->findOneBy(['email' => $request->request->get('contact')['email']]);
+        $conversation = $conversationService->createConversation();
 
-        $conversation = new Conversation();
-        $conversation->addParticipant($security->getUser());
-        $conversation->addParticipant($participant);
-
-        try {
-            $manager = $this->getDoctrine()->getManager();
-            $manager->persist($conversation);
-            $manager->flush();
-
-        } catch (\Exception $exception) {
+        if (is_array($conversation)) {
             return $this->json([
-                'error' => 'Unprocessable Entity',
-            ], 422);
+                'error' => $conversation['error'],
+            ], $conversation['code']);
         }
 
-        return $this->json([
-            'conversation' => $conversation,
-            ], 201, [], [
-            'groups' => ['list'],
-        ]);
+        return new JsonResponse($conversation, 201, [], true);
     }
 }
