@@ -3,29 +3,22 @@
 namespace App\Controller;
 
 use App\Entity\Conversation;
-use App\Entity\Message;
+use App\Service\MessageService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 
 class MessageController extends AbstractController
 {
     /**
      * @Route("/conversation/{id}/message", name="new_message", methods={"POST"})
+     * @param Conversation $conversation
+     * @param MessageService $messageService
+     * @return JsonResponse
      */
-    public function new(Conversation $conversation, Request $request, Security $security)
+    public function new(Conversation $conversation, MessageService $messageService)
     {
-        $message = new Message();
-        $message->setAuthor($security->getUser());
-        $message->setConversation($conversation);
-        $message->setContent($request->request->get('message'));
-
-        $em = $this->getDoctrine()->getManager();
-
-        $em->persist($message);
-        $em->flush();
+        $message =$messageService->addMessageToConversation($conversation);
 
         //had to use this because of a circular reference,
         //most of the code is the $this->>json() that is normally used in this app
