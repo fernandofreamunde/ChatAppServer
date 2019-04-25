@@ -10,6 +10,7 @@ use App\Repository\UserRepository;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 
 class ContactService
@@ -41,29 +42,38 @@ class ContactService
 
     public function __construct(
         Security $security,
-        Request $request,
+        RequestStack $requestStack,
         ContainerInterface $container,
         ContactRepository $contactRepository,
         UserRepository $userRepository
     )
     {
         $this->security = $security;
-        $this->request = $request;
+        $this->request = $requestStack->getCurrentRequest();
         $this->container = $container;
         $this->contactRepository = $contactRepository;
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @return Contact[]
+     */
     public function getContactInvites()
     {
         return $this->contactRepository->findInvitesByContact($this->security->getUser()->getId());
     }
 
+    /**
+     * @return Contact[]
+     */
     public function getContacts()
     {
         return $this->contactRepository->findBy(['owner' => $this->security->getUser()]);
     }
 
+    /**
+     * @return Contact|array
+     */
     public function createContact()
     {
         $email = $this->request->request->get('email');
@@ -105,6 +115,10 @@ class ContactService
         return $contact;
     }
 
+    /**
+     * @param Contact $contact
+     * @return Contact|array
+     */
     public function acceptContactInvite(Contact $contact)
     {
         $newContact = $this->getContactEntity();
@@ -131,6 +145,10 @@ class ContactService
         return $newContact;
     }
 
+    /**
+     * @param Contact $contact
+     * @return Contact
+     */
     public function rejectContactInvite(Contact $contact)
     {
         $contact->setStatus(self::CONTACT_STATUS_REJECTED);
@@ -138,6 +156,10 @@ class ContactService
         return $contact;
     }
 
+    /**
+     * @param Contact $contact
+     * @return array
+     */
     public function deleteContact(Contact $contact)
     {
         if ($this->security->getUser()->getId() !== $contact->getOwner()->getId()) {
@@ -160,6 +182,9 @@ class ContactService
         }
     }
 
+    /**
+     * @param $entity
+     */
     private function save($entity)
     {
         $em = $this->container->get('doctrine')->getManager();
@@ -168,6 +193,9 @@ class ContactService
         $em->flush();
     }
 
+    /**
+     * @param $entity
+     */
     public function update($entity)
     {
         $em = $this->container->get('doctrine')->getManager();
@@ -176,6 +204,9 @@ class ContactService
         $em->flush();
     }
 
+    /**
+     * @return Contact
+     */
     private function getContactEntity()
     {
         return (new Contact())->setOwner($this->security->getUser());

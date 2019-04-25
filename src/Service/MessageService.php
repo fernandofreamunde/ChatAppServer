@@ -7,6 +7,7 @@ use App\Entity\Message;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 
 class MessageService
@@ -30,10 +31,10 @@ class MessageService
      * @param Request $request
      * @param ContainerInterface $container
      */
-    public function __construct(Security $security, Request $request, ContainerInterface $container)
+    public function __construct(Security $security, RequestStack $requestStack, ContainerInterface $container)
     {
         $this->security = $security;
-        $this->request = $request;
+        $this->request = $requestStack->getCurrentRequest();
         $this->container = $container;
     }
 

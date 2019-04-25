@@ -11,6 +11,7 @@ use App\Repository\UserRepository;
 use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 
 class ConversationService
@@ -46,18 +47,22 @@ class ConversationService
     public function __construct(
         Security $security,
         ConversationRepository $conversationRepository,
-        Request $request,
+        RequestStack $requestStack,
         ContainerInterface $container,
         UserRepository $userRepository
     )
     {
         $this->security = $security;
         $this->conversationRepository = $conversationRepository;
-        $this->request = $request;
+        $this->request = $requestStack->getCurrentRequest();
         $this->container = $container;
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * @param User $participant
+     * @return bool|float|int|string
+     */
     public function getConversationWithContact(User $participant)
     {
         $conversation = $this->conversationRepository->findByWithParticipants($this->security->getUser()->getId(), $participant->getId());
@@ -65,6 +70,9 @@ class ConversationService
         return $this->serialize($conversation, 'conversation');
     }
 
+    /**
+     * @return array|bool|float|int|string
+     */
     public function createConversation()
     {
         $participant = $this->userRepository->findOneBy(['email' => $this->request->request->get('contact')['email']]);
@@ -86,6 +94,11 @@ class ConversationService
         return $this->serialize($conversation);
     }
 
+    /**
+     * @param $data
+     * @param string $title
+     * @return bool|float|int|string
+     */
     public function serialize($data, $title = 'conversations')
     {
         //had to use this because of a circular reference,
@@ -108,6 +121,9 @@ class ConversationService
         return new Conversation();
     }
 
+    /**
+     * @param $entity
+     */
     private function save($entity)
     {
         $em = $this->container->get('doctrine')->getManager();
