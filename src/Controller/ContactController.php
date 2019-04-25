@@ -3,22 +3,19 @@
 namespace App\Controller;
 
 use App\Entity\Contact;
-use App\Repository\ContactRepository;
-use App\Repository\UserRepository;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use App\Service\ContactService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
 
 class ContactController extends AbstractController
 {
     /**
      * @Route("/contact", name="get_contact", methods={"GET"})
      */
-    public function index(Security $security, ContactRepository $contactRepository)
+    public function index(ContactService $contactService)
     {
-        $contacts = $contactRepository->findBy(['owner' => $security->getUser()]);
+        $contacts = $contactService->getContacts();
 
         return $this->json([
             'contacts' => $contacts
@@ -30,42 +27,14 @@ class ContactController extends AbstractController
     /**
      * @Route("/contact", name="set_contact_invite", methods={"POST"})
      */
-    public function new(Request $request, Security $security, UserRepository $userRepository)
+    public function new(ContactService $contactService)
     {
-        if ($request->request->get('email') === null) {
+        $contact = $contactService->createContact();
+
+        if (is_array($contact)) {
             return $this->json([
-                'error' => 'Bad Request',
-            ], 400);
-        }
-
-        $user = $userRepository->findOneBy(['email' => $request->request->get('email')]);
-
-        if ($user === null) {
-            return $this->json([
-                'error' => 'User not found',
-            ], 404);
-        }
-
-        $contact = new Contact();
-        $contact->setOwner($security->getUser());
-        $contact->setContact($user);
-        // Set Value Object
-        $contact->setStatus('invited');
-
-        try {
-            $manager = $this->getDoctrine()->getManager();
-            $manager->persist($contact);
-            $manager->flush();
-
-        } catch (\Exception $exception) {
-            if ($exception instanceof UniqueConstraintViolationException) {
-                return $this->json([
-                'error' => 'Contact Already Exists',
-            ], 422);
-            }
-            return $this->json([
-                'error' => 'Unprocessable Entity',
-            ], 422);
+                'error' => $contact['error'],
+            ], $contact['code']);
         }
 
         return $this->json([
@@ -77,13 +46,13 @@ class ContactController extends AbstractController
 
     /**
      * @Route("/contact/invites", name="get_contact_invites", methods={"GET"})
+     * @param ContactService $contactService
+     * @return \Symfony\Component\HttpFoundation\JsonResponse
      */
-    public function invites(Security $security, ContactRepository $contactRepository)
+    public function invites(ContactService $contactService)
     {
-        $contacts = $contactRepository->findInvitesByContact($security->getUser()->getId());
-
         return $this->json([
-            'contacts' => $contacts
+            'contacts' => $contactService->getContactInvites()
         ], 200, [], [
             'groups' => ['list'],
         ]);
@@ -92,65 +61,40 @@ class ContactController extends AbstractController
     /**
      * @Route("/contact/{id}", name="set_contact", methods={"PUT"})
      */
-    public function update(Security $security, Contact $contact, Request $request)
+    public function update(Contact $contact, Request $request, ContactService $contactService)
     {
-        $newContact = null;
         if ($request->request->get('status') === 'accepted') {
-            // probably there is a better solution for the contacts thing...
-            $newContact = new Contact();
-            $newContact->setOwner($security->getUser());
-            $newContact->setContact($contact->getOwner());
-            // Set Value Object
-            $newContact->setStatus($request->request->get('status'));
+            $newContact = $contactService->acceptContactInvite($contact);
         }
 
-        $contact->setStatus($request->request->get('status'));
+        if ($request->request->get('status') === 'rejected') {
+            $contact = $contactService->rejectContactInvite($contact);
+        }
 
-        try {
-            $manager = $this->getDoctrine()->getManager();
-            $manager->merge($contact);
-            if ($newContact instanceof Contact) {
-                $manager->persist($newContact);
-            }
-            $manager->flush();
-
-        } catch (\Exception $exception) {
-            if ($exception instanceof UniqueConstraintViolationException) {
-                return $this->json([
-                    'error' => 'Contact Already Exists',
-                ], 422);
-            }
+        if (is_array($contact)) {
             return $this->json([
-                'error' => 'Unprocessable Entity',
-            ], 422);
+                'error' => $contact['error'],
+            ], $contact['code']);
         }
 
         return $this->json([
-            'contact' => $contact->getStatus() !== 'accepted' ? $contact :$newContact
+            'contact' => $contact->getStatus() !== 'accepted' ? $contact : $newContact
         ], 200, [], [
             'groups' => ['list'],
         ]);
     }
+
     /**
      * @Route("/contact/{id}", name="delete_contact", methods={"DELETE"})
      */
-    public function delete(Security $security, Contact $contact)
+    public function delete(Contact $contact, ContactService $contactService)
     {
-        if ($security->getUser()->getId() !== $contact->getOwner()->getId()) {
-            return $this->json([
-                'error' => 'Unauthorized',
-            ], 401);
-        }
+        $result = $contactService->deleteContact($contact);
 
-        try {
-            $manager = $this->getDoctrine()->getManager();
-            $manager->remove($contact);
-            $manager->flush();
-
-        } catch (\Exception $exception) {
+        if (is_array($result)) {
             return $this->json([
-                'error' => 'Unprocessable Entity',
-            ], 422);
+                'error' => $result['error'],
+            ], $result['code']);
         }
 
         return $this->json([], 200, [], []);
