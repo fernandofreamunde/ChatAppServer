@@ -60,7 +60,7 @@ class ContactService
      */
     public function getContactInvites()
     {
-        return $this->contactRepository->findInvitesByContact($this->security->getUser()->getId());
+        return $this->contactRepository->findContactInvites($this->security->getUser()->getId());
     }
 
     /**

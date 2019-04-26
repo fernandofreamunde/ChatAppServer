@@ -35,6 +35,25 @@ class ContactRepository extends ServiceEntityRepository
         ;
     }
 
+     /**
+      * @return Contact[] Returns an array of Contact objects
+      */
+    public function findContactInvites($contactId)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.owner = :owner')
+            ->orWhere('c.contact = :owner')
+            ->setParameter('owner', $contactId)
+            ->andWhere('c.status = :status_invited')
+            ->setParameter('status_invited', 'invited')
+            ->orWhere('c.status = :status_rejected')
+            ->setParameter('status_rejected', 'rejected')
+            ->orderBy('c.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
     /*
     public function findOneBySomeField($value): ?Contact
     {
