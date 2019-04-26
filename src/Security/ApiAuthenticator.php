@@ -29,7 +29,7 @@ class ApiAuthenticator extends AbstractGuardAuthenticator
 
     public function supports(Request $request)
     {
-        return $request->attributes->get('_route') !== 'app_login';
+        return !in_array($request->attributes->get('_route'), ['app_login', 'app_register']);
     }
 
     public function getCredentials(Request $request)
