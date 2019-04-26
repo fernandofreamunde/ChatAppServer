@@ -63,9 +63,20 @@ class ConversationService
      * @param User $participant
      * @return bool|float|int|string
      */
+    public function getConversations()
+    {
+        $conversation = $this->conversationRepository->findConversationsByUserId($this->getUser()->getId());
+
+        return $this->serialize($conversation);
+    }
+
+    /**
+     * @param User $participant
+     * @return bool|float|int|string
+     */
     public function getConversationWithContact(User $participant)
     {
-        $conversation = $this->conversationRepository->findByWithParticipants($this->security->getUser()->getId(), $participant->getId());
+        $conversation = $this->conversationRepository->findByWithParticipants($this->getUser()->getId(), $participant->getId());
 
         return $this->serialize($conversation, 'conversation');
     }
@@ -78,7 +89,7 @@ class ConversationService
         $participant = $this->userRepository->findOneBy(['email' => $this->request->request->get('contact')['email']]);
 
         $conversation = $this->getConversationEntity();
-        $conversation->addParticipant($this->security->getUser());
+        $conversation->addParticipant($this->getUser());
         $conversation->addParticipant($participant);
 
         try {
@@ -130,6 +141,14 @@ class ConversationService
 
         $em->persist($entity);
         $em->flush();
+    }
+
+    /**
+     * @return \Symfony\Component\Security\Core\User\UserInterface|null
+     */
+    public function getUser(): User
+    {
+        return $this->security->getUser();
     }
 
 }

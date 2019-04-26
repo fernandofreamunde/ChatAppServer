@@ -11,12 +11,23 @@ use Symfony\Component\Routing\Annotation\Route;
 class ConversationController extends AbstractController
 {
     /**
+     * @Route("/conversation", name="get_conversations", methods={"GET"})
+     * @param User $user
+     * @param ConversationService $conversationService
+     * @return JsonResponse
+     */
+    public function index(ConversationService $conversationService)
+    {
+        return new JsonResponse($conversationService->getConversations(), 200, [], true);
+    }
+
+    /**
      * @Route("/conversation/{email}", name="get_conversation_byuser", methods={"GET"})
      * @param User $user
      * @param ConversationService $conversationService
      * @return JsonResponse
      */
-    public function getConversation(User $user, ConversationService $conversationService)
+    public function show(User $user, ConversationService $conversationService)
     {
         $conversation = $conversationService->getConversationWithContact($user);
         return new JsonResponse($conversation, 200, [], true);

@@ -45,6 +45,16 @@ class ConversationRepository extends ServiceEntityRepository
         return $this->find($stmt->fetch()['id']);
     }
 
+    public function findConversationsByUserId($id)
+    {
+        return $this->createQueryBuilder('c')
+            ->leftJoin('c.participants', 'p')
+            ->andWhere('p.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getResult();
+    }
+
     /*
     public function findOneBySomeField($value): ?Conversation
     {
