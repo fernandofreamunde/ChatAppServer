@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Conversation;
 use App\Entity\User;
 use App\Service\ConversationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,15 +23,14 @@ class ConversationController extends AbstractController
     }
 
     /**
-     * @Route("/conversation/{email}", name="get_conversation_byuser", methods={"GET"})
+     * @Route("/conversation/{id}", name="get_conversation_byuser", methods={"GET"})
      * @param User $user
      * @param ConversationService $conversationService
      * @return JsonResponse
      */
-    public function show(User $user, ConversationService $conversationService)
+    public function show(Conversation $conversation, ConversationService $conversationService)
     {
-        $conversation = $conversationService->getConversationWithContact($user);
-        return new JsonResponse($conversation, 200, [], true);
+        return new JsonResponse($conversationService->serialize($conversation, 'conversation'), 200, [], true);
     }
 
     /**
