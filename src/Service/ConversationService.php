@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Service;
-
 
 use App\Entity\Conversation;
 use App\Entity\User;
@@ -68,17 +66,6 @@ class ConversationService
         $conversation = $this->conversationRepository->findConversationsByUserId($this->getUser()->getId());
 
         return $this->serialize($conversation);
-    }
-
-    /**
-     * @param User $participant
-     * @return bool|float|int|string
-     */
-    public function getConversationWithContact(User $participant)
-    {
-        $conversation = $this->conversationRepository->findByWithParticipants($this->getUser()->getId(), $participant->getId());
-
-        return $this->serialize($conversation, 'conversation');
     }
 
     /**
