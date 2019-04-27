@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Timestampable\Traits\TimestampableEntity;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
@@ -10,6 +11,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
  */
 class Message
 {
+    use TimestampableEntity;
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -36,6 +39,14 @@ class Message
      * @ORM\JoinColumn(nullable=false)
      */
     private $conversation;
+
+    /**
+     * @var \DateTime
+     * @Gedmo\Timestampable(on="create")
+     * @ORM\Column(type="datetime")
+     * @Groups("list")
+     */
+    protected $createdAt;
 
     public function getId(): ?int
     {
