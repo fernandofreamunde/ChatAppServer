@@ -28,7 +28,6 @@ class Conversation
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Message", mappedBy="conversation", orphanRemoval=true)
-     * @Groups("list")
      */
     private $messages;
 
