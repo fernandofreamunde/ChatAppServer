@@ -31,7 +31,20 @@ class MessageController extends AbstractController
      */
     public function show(Conversation $conversation, MessageService $messageService)
     {
-        $messages = $messageService->serialize($conversation->getMessages());
+        $messages = $messageService->getMessages($conversation);
+
+        return new JsonResponse($messages, 200, [], true);
+    }
+
+    /**
+     * @Route("/conversation/{id}/messages/pages", name="get_conversation_messages_pagecount", methods={"GET"})
+     * @param Conversation $conversation
+     * @param MessageService $messageService
+     * @return JsonResponse
+     */
+    public function pagecount(Conversation $conversation, MessageService $messageService)
+    {
+        $messages = $messageService->getMessagesPages($conversation);
 
         return new JsonResponse($messages, 200, [], true);
     }
