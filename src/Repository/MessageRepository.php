@@ -19,22 +19,55 @@ class MessageRepository extends ServiceEntityRepository
         parent::__construct($registry, Message::class);
     }
 
-    // /**
-    //  * @return Message[] Returns an array of Message objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findByConversationPaginated($conversationId, $page = 1, $itemsPerPage = 5)
     {
+        $offset = ($page - 1) * $itemsPerPage;
         return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('m.id', 'ASC')
-            ->setMaxResults(10)
+            ->andWhere('m.conversation = :id')
+            ->setParameter('id', $conversationId)
+            ->orderBy('m.id', 'DESC')
+            ->setMaxResults($itemsPerPage)
+            ->setFirstResult($offset)
             ->getQuery()
             ->getResult()
         ;
     }
-    */
+
+    public function getPageCount($conversationId, $itemsPerPage = 5)
+    {
+        $itemCount = $this->createQueryBuilder('m')
+            ->select('count(m.id)')
+            ->andWhere('m.conversation = :id')
+            ->setParameter('id', $conversationId)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return ceil($itemCount / $itemsPerPage);
+    }
+
+    public function findByConversationSinceDate($conversationId, $date)
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.conversation = :id')
+            ->setParameter('id', $conversationId)
+            ->andWhere('m.createdAt > :date')
+            ->setParameter('date', $date)
+            ->getQuery()->getSQL()
+            ->getResult()
+        ;
+    }
+
+    public function findByConversationSinceId($conversationId, $id)
+    {
+        return $this->createQueryBuilder('m')
+            ->andWhere('m.conversation = :id')
+            ->setParameter('id', $conversationId)
+            ->andWhere('m.id > :since')
+            ->setParameter('since', $id)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 
     /*
     public function findOneBySomeField($value): ?Message
