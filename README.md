@@ -1,6 +1,8 @@
 # ChatAppServer
 This project was made as an assessment for a job interview.
 
+![Screenshot from 2022-10-11 11-44-23](https://user-images.githubusercontent.com/3598030/195064292-155ab89f-0761-48e1-b530-89f958eeb708.png)
+
 ### Objective
 Write a very simple ‘chat’ application backend in PHP. 
 A user should be able to send a simple text message to another user and a user should be able to get the messages sent to him and the author users of those messages. 
